@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @db.VarChar(36)
+  email         String    @unique @db.VarChar(160)
+  name          String    @db.VarChar(120)
+  avatarUrl     String?   @default("") @db.VarChar(255)
+  bio           String?   @db.Text
+  location      String?   @default("") @db.VarChar(160)
+  rating        Float     @default(0)
+  servicesCount Int       @default(0)
+  verified      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  services         Service[]
+  reviews          Review[]
+  portfolioItems   PortfolioItem[]
+  sentMessages     ChatMessage[]  @relation("SenderMessages")
+  conversations1   Conversation[] @relation("UserOneConversations")
+  conversations2   Conversation[] @relation("UserTwoConversations")
+  notifications    Notification[]
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique @db.VarChar(120)
+  icon      String     @db.VarChar(120)
+  color     String     @db.VarChar(20)
+  createdAt DateTime  @default(now())
+
+  services Service[]
+
+  @@map("categories")
+}
+
+model Service {
+  id          String    @id @db.VarChar(36)
+  title       String    @db.VarChar(200)
+  providerId  String    @db.VarChar(36)
+  categoryId  Int
+  imageUrl    String    @db.VarChar(255)
+  rating      Float     @default(0)
+  price       String    @db.VarChar(60)
+  description String    @db.Text
+  categoryName  String    @db.VarChar(120)
+  reviewsCount Int      @default(0)
+  featured    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  provider   User       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  reviews    Review[]
+  portfolio  PortfolioItem[]
+}
+
+model Review {
+  id        String   @id @db.VarChar(36)
+  serviceId String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  userName  String   @db.VarChar(120)
+  userAvatar String? @default("") @db.VarChar(255)
+  rating    Float
+  comment   String   @db.Text
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([userId])
+}
+
+model PortfolioItem {
+  id        String   @id @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  imageUrl  String   @db.VarChar(255)
+  title     String   @db.VarChar(200)
+  createdAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+}
+
+model Conversation {
+  id            String    @id @db.VarChar(36)
+  userOneId     String    @db.VarChar(36)
+  userTwoId     String    @db.VarChar(36)
+  lastMessageId String?   @unique @db.VarChar(36)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userOne     User             @relation("UserOneConversations", fields: [userOneId], references: [id], onDelete: Cascade)
+  userTwo     User             @relation("UserTwoConversations", fields: [userTwoId], references: [id], onDelete: Cascade)
+  lastMessage ChatMessage?     @relation("ConversationLastMessage", fields: [lastMessageId], references: [id])
+  messages    ChatMessage[]    @relation("ConversationMessages")
+}
+
+model ChatMessage {
+  id                  String    @id @db.VarChar(36)
+  conversationId      String    @db.VarChar(36)
+  senderId            String    @db.VarChar(36)
+  type                String    @default("text") @db.VarChar(20)
+  text                String    @db.Text
+  latitude            Float?
+  longitude           Float?
+  address             String?   @db.VarChar(255)
+  audioDurationSeconds Int?
+  audioUrl            String?   @db.VarChar(255)
+  status              String    @default("sent") @db.VarChar(20)
+  time                DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  conversation Conversation @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  lastMessageOf Conversation? @relation("ConversationLastMessage")
+  sender       User         @relation("SenderMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([time])
+}
+
+model Notification {
+  id        String   @id @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  title     String   @db.VarChar(200)
+  body      String   @db.Text
+  time      DateTime @default(now())
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([time])
+}
