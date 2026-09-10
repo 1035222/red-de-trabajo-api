@@ -32,7 +32,11 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.uid;
-    const { name, bio, location } = req.body;
+    const { name, bio, location, avatarUrl } = req.body;
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEBUG updateProfile] userId=${userId} body=${JSON.stringify({ name, bio, location, avatarUrl })}`);
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -40,12 +44,35 @@ const updateProfile = async (req, res) => {
         name: name || undefined,
         bio: bio || undefined,
         location: location || undefined,
+        avatarUrl: avatarUrl || undefined,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        bio: true,
+        location: true,
+        rating: true,
+        servicesCount: true,
+        verified: true,
+        createdAt: true,
       },
     });
 
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEBUG updateProfile] success userId=${user.id} name=${user.name}`);
+    }
+
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar perfil', error: error.message });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEBUG updateProfile] error code=${error.code} message=${error.message}`);
+    }
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Usuario no encontrado en la base de datos' });
+    }
+    res.status(500).json({ message: 'Error al actualizar perfil', error: error.message, code: error.code });
   }
 };
 
