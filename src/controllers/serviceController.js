@@ -3,7 +3,7 @@ const prisma = require('../config/database');
 
 const getServices = async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const { category, search, featured, minPrice, maxPrice, location } = req.query;
     const where = {};
 
     if (category && category !== 'Todos') {
@@ -18,7 +18,11 @@ const getServices = async (req, res) => {
       ];
     }
 
-    const services = await prisma.service.findMany({
+    if (featured !== undefined) {
+      where.featured = featured === 'true' || featured === true;
+    }
+
+    let services = await prisma.service.findMany({
       where,
       include: {
         provider: {
@@ -27,11 +31,29 @@ const getServices = async (req, res) => {
             name: true,
             avatarUrl: true,
             rating: true,
+            location: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const min = minPrice !== undefined && minPrice !== '' ? Number(minPrice) : null;
+    const max = maxPrice !== undefined && maxPrice !== '' ? Number(maxPrice) : null;
+    const loc = location && location !== '' ? String(location).trim().toLowerCase() : null;
+
+    if (min !== null || max !== null || loc !== null) {
+      services = services.filter((service) => {
+        const servicePrice = Number(String(service.price ?? '').replace(/[^0-9.]/g, '')) || 0;
+        const providerLocation = (service.provider?.location ?? '').toString().trim().toLowerCase();
+
+        if (min !== null && servicePrice < min) return false;
+        if (max !== null && servicePrice > max) return false;
+        if (loc !== null && providerLocation && !providerLocation.includes(loc)) return false;
+        if (loc !== null && !providerLocation.includes(loc)) return false;
+        return true;
+      });
+    }
 
     res.json(services);
   } catch (error) {
