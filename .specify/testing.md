@@ -16,3 +16,12 @@ Plan de pruebas — Notificaciones push (pendiente de ejecutar cuando se impleme
  Notificación FCM se dispara al crear un mensaje de chat nuevo.
  Notificación FCM se dispara al recibir una reseña nueva.
  Confirmación de que ningún cambio de esta fase tocó src/middlewares/auth.js, src/config/firebase.js ni serviceAccountKey.json.
+
+## Evidencia ejecutada — perfil, publicación y búsqueda (2026-09-11)
+
+- `PUT /api/users/me` con el usuario de desarrollo `probe_upsert_404` respondió `200` con `name=Probe Persistido`, `bio=Perfil guardado desde PUT` y `location=Santiago`.
+- Consulta directa con Prisma para `probe_upsert_404` confirmó esos mismos valores persistidos en `User`.
+- `POST /api/services` con categoría `Limpieza` respondió `201` y creó el servicio `95750bde-3bbb-4814-8ecb-0e7adc2053c9` con precio `$275`, descripción, `categoryId=3`, `categoryName=Limpieza`, `providerId=probe_upsert_404` e `imageUrl`.
+- Consulta directa con Prisma confirmó el registro del servicio.
+- `GET /api/services?category=Limpieza` respondió `200`, devolvió 2 resultados e incluyó el servicio creado, con el proveedor y ubicación `Santiago`.
+- Estas pruebas fueron ejecutadas contra la API local y Prisma con el bypass de desarrollo `x-test-user-id`; no constituyen una interacción UI autenticada real.

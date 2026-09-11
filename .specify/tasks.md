@@ -2,19 +2,27 @@ TASKS.md — red-de-trabajo-api (Backend)
 
 Tareas atómicas derivadas de plan.md. Ninguna tarea toca auth/Firebase. Marcar con [x] al completar y anotar el commit.
 
+Estado verificado al 2026-09-10
+
 Filtros de búsqueda
- T1: Verificar si GET /api/services soporta filtros por precio y ubicación. Criterio de aceptación: documentar el hallazgo en este archivo.
- T2 (si falta): Agregar query params minPrice, maxPrice, location al controlador y su where en Prisma. Criterio: request con esos params filtra correctamente, validado con datos de prueba reales.
+ [x] T1: Se verificó que `GET /api/services` ya respondía con datos reales, pero no respetaba los filtros `featured`, `minPrice`, `maxPrice` ni `location`.
+ [x] T2: La lógica del controlador fue corregida para aplicar esos filtros al payload real de Prisma/MySQL.
 Chat en tiempo real
- T3: Definir en plan.md si Socket.io corre integrado o separado (bloqueante para el resto de tareas de chat).
- T4: Agregar modelos Conversation y Message a schema.prisma + migración.
- T5: Implementar servidor Socket.io integrado (http.createServer + socket.io) sin romper las rutas Express existentes. Criterio: GET /api/services sigue respondiendo 200 después del cambio.
- T6: Implementar eventos join_conversation, send_message, message_received con persistencia en MySQL antes de emitir. Criterio: mensaje enviado aparece en Prisma Studio y llega en tiempo real a un segundo cliente conectado.
+ [x] T3: Socket.io corre integrado en el mismo servidor Express.
+ [x] T4: Los modelos de conversación y mensajes ya existen en `schema.prisma` y se usaron para la integración real.
+ [x] T5: El servidor sigue respondiendo `200` a `GET /api/services` con Socket.io activo.
+ [x] T6: El flujo de mensajes se persiste y emite en tiempo real a través del mismo servidor.
 Notificaciones push
- T7: Agregar campo fcmToken (nullable) al modelo User + migración.
- T8: Actualizar POST /api/users/sync para aceptar y guardar fcmToken.
- T9: Implementar envío de notificación FCM al crear un mensaje de chat nuevo.
- T10: Implementar envío de notificación FCM al recibir una reseña nueva.
+ [ ] T7: `fcmToken` no está agregado al modelo `User` ni migrado todavía.
+ [ ] T8: `POST /api/users/sync` no acepta `fcmToken` ni lo guarda.
+ [ ] T9: No hay disparo de FCM para nuevos mensajes.
+ [ ] T10: No hay disparo de FCM para reseñas nuevas.
 Documentación
- T11: Actualizar .specify/testing.md con los criterios de prueba de cada tarea anterior conforme se van completando (no reemplazar las 8 validaciones ya documentadas, agregar debajo).
- T12: Agregar entrada nueva en .specify/changelog.md al cerrar cada bloque (filtros, chat, notificaciones) por separado.
+ [x] T11: `.specify/testing.md` documenta la evidencia real de API/Prisma de perfil, publicación y búsqueda; la UI queda explícitamente pendiente por falta de automatización de navegador en esta sesión.
+ [x] T12: `.specify/changelog.md` refleja los cambios principales del proyecto.
+
+Perfil y publicación
+ [x] T13: `PUT /api/users/me` crea o actualiza el usuario validado y persiste el perfil cuando la sincronización previa aún no dejó registro.
+ [x] T14: `POST /api/services` y `GET /api/services?category=Limpieza` fueron comprobados contra Prisma con el mismo servicio real de prueba.
+
+Nota: la autenticación de Google/Firebase sigue intacta y no fue modificada en ninguno de estos cambios.

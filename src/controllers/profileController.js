@@ -38,13 +38,21 @@ const updateProfile = async (req, res) => {
       console.log(`[DEBUG updateProfile] userId=${userId} body=${JSON.stringify({ name, bio, location, avatarUrl })}`);
     }
 
-    const user = await prisma.user.update({
+    const user = await prisma.user.upsert({
       where: { id: userId },
-      data: {
+      update: {
         name: name || undefined,
         bio: bio || undefined,
         location: location || undefined,
         avatarUrl: avatarUrl || undefined,
+      },
+      create: {
+        id: userId,
+        email: req.user.email || `${userId}@unknown.local`,
+        name: name || req.user.name || 'Usuario',
+        bio: bio || null,
+        location: location || null,
+        avatarUrl: avatarUrl || req.user.picture || '',
       },
       select: {
         id: true,
