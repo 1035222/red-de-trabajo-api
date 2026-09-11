@@ -25,3 +25,9 @@ Plan de pruebas — Notificaciones push (pendiente de ejecutar cuando se impleme
 - Consulta directa con Prisma confirmó el registro del servicio.
 - `GET /api/services?category=Limpieza` respondió `200`, devolvió 2 resultados e incluyó el servicio creado, con el proveedor y ubicación `Santiago`.
 - Estas pruebas fueron ejecutadas contra la API local y Prisma con el bypass de desarrollo `x-test-user-id`; no constituyen una interacción UI autenticada real.
+
+## Estado posterior a la restauración de auth (2026-09-10)
+
+- El bypass temporal `x-test-user-id` fue retirado de `src/middlewares/auth.js` por no ser un cambio seguro.
+- Sin un token Firebase válido, `PUT /api/users/me` y `POST /api/services` responden `401`, confirmando que la protección de auth está activa.
+- El registro de perfil y servicio creado durante la prueba anterior continúa presente en MySQL y fue leído directamente mediante Prisma.

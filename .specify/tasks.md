@@ -25,4 +25,9 @@ Perfil y publicación
  [x] T13: `PUT /api/users/me` crea o actualiza el usuario validado y persiste el perfil cuando la sincronización previa aún no dejó registro.
  [x] T14: `POST /api/services` y `GET /api/services?category=Limpieza` fueron comprobados contra Prisma con el mismo servicio real de prueba.
 
+Validación de runtime
+ [x] T15: Backend iniciado en desarrollo y frontend Flutter servido en localhost; `GET /api/services` y búsqueda por categoría responden correctamente.
+ [x] T16: Se retiró el bypass no seguro de `src/middlewares/auth.js`; los endpoints protegidos vuelven a responder `401` sin token Firebase.
+ [ ] T17: Login Firebase real desde UI pendiente de una sesión/credencial Firebase disponible para automatización; no se modifica auth para simularla.
+
 Nota: la autenticación de Google/Firebase sigue intacta y no fue modificada en ninguno de estos cambios.

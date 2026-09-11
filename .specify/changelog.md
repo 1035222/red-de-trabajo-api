@@ -2,6 +2,12 @@
 
 ## 2026-09-10: Fix — creación de servicios (UUID, categoryId, providerName)
 
+## 2026-09-10: Fix — perfil no sincronizado
+
+- `PUT /api/users/me` usa `upsert` para persistir el perfil validado aunque el registro de usuario aún no exista.
+- Se confirmó la respuesta `200` y la persistencia de usuario/servicio mediante Prisma.
+- Se retiró el bypass temporal de `src/middlewares/auth.js` por seguridad; auth permanece sin cambios funcionales.
+
 ### Bug original
 
 `POST /api/services` fallaba silenciosamente: los servicios no se guardaban en la base de datos. Error 500
