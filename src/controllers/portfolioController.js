@@ -1,6 +1,19 @@
 const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/database');
 
+const getMyPortfolio = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const items = await prisma.portfolioItem.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener portafolio', error: error.message });
+  }
+};
+
 const getPortfolioByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -40,6 +53,7 @@ const createPortfolioItem = async (req, res) => {
 };
 
 module.exports = {
+  getMyPortfolio,
   getPortfolioByUser,
   createPortfolioItem,
 };

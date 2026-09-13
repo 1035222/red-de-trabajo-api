@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const path = require('path');
 
 let initialized = false;
 
@@ -12,10 +13,14 @@ function getFirebaseAdmin() {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_PATH no está definido en el .env');
   }
 
-  const serviceAccount = require(serviceAccountPath);
+  const resolvedServiceAccountPath = path.isAbsolute(serviceAccountPath)
+    ? serviceAccountPath
+    : path.resolve(process.cwd(), serviceAccountPath);
+  const serviceAccount = require(resolvedServiceAccountPath);
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+    projectId: process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id,
   });
 
   initialized = true;

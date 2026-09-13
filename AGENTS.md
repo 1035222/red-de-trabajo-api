@@ -31,6 +31,10 @@ npx prisma studio    # inspeccionar/editar datos directamente
 npx prisma migrate status   # ver estado de migraciones
 npx prisma db push          # sincronizar schema con la base de datos
 
+Antes de ejecutar `npm run dev`, verifica que no haya otra instancia usando el puerto 3000:
+`netstat -ano | findstr :3000`. Si el PID corresponde a un Node antiguo, compruébalo con
+`Get-Process -Id <PID>` y ciérralo con `Stop-Process -Id <PID> -Force`.
+
 (Verifica estos comandos contra el package.json real antes de asumir.)
 
 ## Estilo de código

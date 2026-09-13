@@ -8,6 +8,9 @@
     "dev": "nodemon src/server.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js",
+    "backfill:service-images": "node prisma/backfill-service-images.js",
+    "repair:service-images": "node prisma/repair-service-images.js",
+    "seed:chat-test-users": "node prisma/seed-chat-test-users.js",
     "prisma:studio": "prisma studio"
   },
   "keywords": [],
@@ -22,11 +25,14 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.2.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
     "mysql2": "^3.9.7",
+    "socket.io": "^4.8.3",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
-    "prisma": "^6.4.1"
+    "prisma": "^6.4.1",
+    "socket.io-client": "^4.8.3"
   }
 }

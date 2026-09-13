@@ -44,7 +44,7 @@ const updateProfile = async (req, res) => {
         name: name || undefined,
         bio: bio || undefined,
         location: location || undefined,
-        avatarUrl: avatarUrl || undefined,
+        avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
       },
       create: {
         id: userId,

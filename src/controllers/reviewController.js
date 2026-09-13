@@ -1,6 +1,19 @@
 const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/database');
 
+const getMyReviews = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener reseñas', error: error.message });
+  }
+};
+
 const getReviewsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -14,12 +27,24 @@ const getReviewsByUser = async (req, res) => {
   }
 };
 
+const getReviewsByService = async (req, res) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { serviceId: req.params.serviceId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener reseñas', error: error.message });
+  }
+};
+
 const createReview = async (req, res) => {
   try {
     const userId = req.user.uid;
     const { serviceId, userName, userAvatar, rating, comment } = req.body;
 
-    if (!serviceId || !rating || !comment) {
+    if (!serviceId || rating == null || !comment?.trim() || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Faltan campos requeridos' });
     }
 
@@ -35,6 +60,16 @@ const createReview = async (req, res) => {
       },
     });
 
+    const aggregate = await prisma.review.aggregate({
+      where: { serviceId },
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+    await prisma.service.update({
+      where: { id: serviceId },
+      data: { rating: aggregate._avg.rating ?? 0, reviewsCount: aggregate._count.id },
+    });
+
     res.status(201).json(review);
   } catch (error) {
     res.status(500).json({ message: 'Error al crear reseña', error: error.message, code: error.code });
@@ -42,6 +77,8 @@ const createReview = async (req, res) => {
 };
 
 module.exports = {
+  getMyReviews,
   getReviewsByUser,
+  getReviewsByService,
   createReview,
 };

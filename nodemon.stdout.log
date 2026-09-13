@@ -1,0 +1,8 @@
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node src/server.js`[39m
+Servidor corriendo en el puerto 3000
+[2026-09-11T02:28:16.223Z] IN  GET /api/services
+[2026-09-11T02:28:16.346Z] OUT GET /api/services -> 200
