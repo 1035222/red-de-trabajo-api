@@ -8,5 +8,6 @@ router.get('/conversations', authMiddleware, chatController.getConversations);
 router.get('/conversations/:conversationId/messages', authMiddleware, chatController.getMessages);
 router.post('/conversations', authMiddleware, chatController.createOrFindConversation);
 router.post('/conversations/:conversationId/messages', authMiddleware, chatController.sendMessage);
+router.delete('/conversations/:conversationId/messages/:messageId', authMiddleware, chatController.deleteMessage);
 
 module.exports = router;

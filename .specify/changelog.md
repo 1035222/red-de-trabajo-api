@@ -1,5 +1,11 @@
 # Changelog — red-de-trabajo-api
 
+## 2026-10-31: Fix — sincronización Firebase y notificaciones
+
+- La sincronización del perfil toma el UID y el correo de los claims verificados en el token, no de campos de identidad enviados por el cliente.
+- Se agregaron almacenamiento de tokens FCM por dispositivo y endpoints autenticados para registrarlos/revocarlos.
+- Se persisten y envían notificaciones por mensajes, solicitudes y reseñas; la configuración de base de datos pendiente requiere `npx prisma db push`.
+
 ## 2026-09-10: Fix — creación de servicios (UUID, categoryId, providerName)
 
 ## 2026-09-10: Fix — perfil no sincronizado

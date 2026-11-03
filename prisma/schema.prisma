@@ -27,6 +27,7 @@ model User {
   conversations1   Conversation[] @relation("UserOneConversations")
   conversations2   Conversation[] @relation("UserTwoConversations")
   notifications    Notification[]
+  fcmTokens        FcmToken[]
   favorites        Favorite[]
   serviceRequests  ServiceRequest[] @relation("RequesterRequests")
   receivedRequests ServiceRequest[] @relation("ProviderRequests")
@@ -172,6 +173,7 @@ model Notification {
   userId    String   @db.VarChar(36)
   title     String   @db.VarChar(200)
   body      String   @db.Text
+  data      Json?    @map("metadata")
   time      DateTime @default(now())
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -181,4 +183,18 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([time])
+}
+
+model FcmToken {
+  id        String   @id @db.VarChar(36)
+  userId    String   @map("user_id") @db.VarChar(36)
+  token     String   @unique @db.VarChar(512)
+  platform  String   @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("fcm_tokens")
 }

@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/database');
+const { notifyUser } = require('../services/notificationService');
 
 const getMyReviews = async (req, res) => {
   try {
@@ -48,6 +49,14 @@ const createReview = async (req, res) => {
       return res.status(400).json({ message: 'Faltan campos requeridos' });
     }
 
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+      select: { providerId: true },
+    });
+    if (!service) {
+      return res.status(404).json({ message: 'Servicio no encontrado' });
+    }
+
     const review = await prisma.review.create({
       data: {
         id: uuidv4(),
@@ -69,6 +78,15 @@ const createReview = async (req, res) => {
       where: { id: serviceId },
       data: { rating: aggregate._avg.rating ?? 0, reviewsCount: aggregate._count.id },
     });
+
+    if (service.providerId !== userId) {
+      await notifyUser({
+        userId: service.providerId,
+        title: 'Nueva reseña',
+        body: `${userName || req.user.name || 'Un usuario'} dejó una reseña en tu servicio`,
+        data: { type: 'review', serviceId },
+      });
+    }
 
     res.status(201).json(review);
   } catch (error) {

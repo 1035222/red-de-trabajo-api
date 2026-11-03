@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/database');
+const { notifyUser } = require('../services/notificationService');
 
 async function toggleFavorite(req, res) {
   const userId = req.user.uid;
@@ -56,6 +57,12 @@ async function createRequest(req, res) {
       providerId: service.providerId,
       message: message || null,
     },
+  });
+  await notifyUser({
+    userId: service.providerId,
+    title: 'Nueva solicitud de servicio',
+    body: `Tienes una nueva solicitud para ${service.title}`,
+    data: { type: 'service_request', serviceId, requestId: request.id },
   });
   res.status(201).json(request);
 }

@@ -13,10 +13,10 @@ Chat en tiempo real
  [x] T5: El servidor sigue respondiendo `200` a `GET /api/services` con Socket.io activo.
  [x] T6: El flujo de mensajes se persiste y emite en tiempo real a través del mismo servidor.
 Notificaciones push
- [ ] T7: `fcmToken` no está agregado al modelo `User` ni migrado todavía.
- [ ] T8: `POST /api/users/sync` no acepta `fcmToken` ni lo guarda.
- [ ] T9: No hay disparo de FCM para nuevos mensajes.
- [ ] T10: No hay disparo de FCM para reseñas nuevas.
+ [x] T7: Se agregó el modelo `FcmToken` para registrar tokens por dispositivo.
+ [x] T8: Se implementaron endpoints autenticados para registrar y revocar tokens FCM.
+ [x] T9: La creación de mensajes persiste la notificación y envía FCM al destinatario.
+ [x] T10: La creación de reseñas y solicitudes persiste la notificación y envía FCM.
 Documentación
  [x] T11: `.specify/testing.md` documenta la evidencia real de API/Prisma de perfil, publicación y búsqueda; la UI queda explícitamente pendiente por falta de automatización de navegador en esta sesión.
  [x] T12: `.specify/changelog.md` refleja los cambios principales del proyecto.
@@ -30,4 +30,4 @@ Validación de runtime
  [x] T16: Se retiró el bypass no seguro de `src/middlewares/auth.js`; los endpoints protegidos vuelven a responder `401` sin token Firebase.
  [ ] T17: Login Firebase real desde UI pendiente de una sesión/credencial Firebase disponible para automatización; no se modifica auth para simularla.
 
-Nota: la autenticación de Google/Firebase sigue intacta y no fue modificada en ninguno de estos cambios.
+Nota: no se modificaron el middleware de verificación de Firebase ni la configuración de Firebase Admin.

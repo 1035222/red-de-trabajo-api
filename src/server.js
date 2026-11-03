@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const prisma = require('./config/database');
 const getFirebaseAdmin = require('./config/firebase');
+const { notifyUser } = require('./services/notificationService');
 
 const usersRouter = require('./routes/users');
 const servicesRouter = require('./routes/services');
@@ -71,6 +72,7 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
   },
 });
+app.set('io', io);
 
 // --- Socket.io Auth Middleware ---
 io.use(async (socket, next) => {
@@ -109,11 +111,27 @@ io.on('connection', (socket) => {
   const ts = new Date().toISOString();
   console.log(`[${ts}] [Socket.io] User connected: ${socket.id} (userId=${socket.userId})`);
 
-  socket.on('join', (data) => {
+  socket.on('join', async (data) => {
     const { conversationId } = data;
-    if (conversationId) {
+    if (!conversationId) return;
+    try {
+      const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        select: { userOneId: true, userTwoId: true },
+      });
+      if (
+        !conversation ||
+        (conversation.userOneId !== socket.userId &&
+          conversation.userTwoId !== socket.userId)
+      ) {
+        socket.emit('error', { message: 'No tienes permiso para ver esta conversación' });
+        return;
+      }
       socket.join(conversationId);
       console.log(`[${ts}] [Socket.io] Socket ${socket.id} joined room ${conversationId}`);
+    } catch (error) {
+      console.error('[Socket.io] Could not join conversation:', error);
+      socket.emit('error', { message: 'No se pudo abrir la conversación' });
     }
   });
 
@@ -179,6 +197,23 @@ io.on('connection', (socket) => {
         audioDurationSeconds: message.audioDurationSeconds,
         audioUrl: message.audioUrl,
         createdAt: message.createdAt,
+      });
+
+      const recipientId = conv.userOneId === userId ? conv.userTwoId : conv.userOneId;
+      const sender = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+      const notificationBody = {
+        audio: 'Te envió una nota de voz',
+        location: 'Te compartió su ubicación',
+        image: 'Te envió una foto',
+      }[type] || text.trim();
+      await notifyUser({
+        userId: recipientId,
+        title: `Mensaje de ${sender?.name || 'un usuario'}`,
+        body: notificationBody,
+        data: { type: 'chat_message', conversationId },
       });
 
       console.log(`[${ts}] [Socket.io] Message in ${conversationId} from ${userId}`);

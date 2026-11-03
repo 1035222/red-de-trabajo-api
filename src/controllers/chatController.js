@@ -26,7 +26,13 @@ const getConversations = async (req, res) => {
       return {
         id: conv.id,
         participantId: otherUserId,
-        lastMessage: lastMsg ? lastMsg.text : '',
+        lastMessage: lastMsg
+          ? lastMsg.type === 'image'
+            ? '📷 Foto'
+            : lastMsg.type === 'audio'
+              ? '🎵 Nota de voz'
+              : lastMsg.text
+          : '',
         lastMessageTime: lastMsg ? lastMsg.createdAt : conv.updatedAt,
         unreadCount: 0,
       };
@@ -183,6 +189,70 @@ const sendMessage = async (req, res) => {
   }
 };
 
+const deleteMessage = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const { conversationId, messageId } = req.params;
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        id: true,
+        userOneId: true,
+        userTwoId: true,
+        lastMessageId: true,
+        createdAt: true,
+      },
+    });
+
+    if (
+      !conversation ||
+      (conversation.userOneId !== userId && conversation.userTwoId !== userId)
+    ) {
+      return res.status(403).json({ message: 'No tienes permiso para eliminar mensajes de esta conversación' });
+    }
+
+    const message = await prisma.chatMessage.findUnique({
+      where: { id: messageId },
+      select: { id: true, conversationId: true, senderId: true },
+    });
+    if (!message || message.conversationId !== conversationId) {
+      return res.status(404).json({ message: 'Mensaje no encontrado' });
+    }
+    if (message.senderId !== userId) {
+      return res.status(403).json({ message: 'Solo puedes eliminar tus propios mensajes' });
+    }
+
+    await prisma.$transaction(async (transaction) => {
+      const latestMessage = await transaction.chatMessage.findFirst({
+        where: {
+          conversationId,
+          id: { not: messageId },
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: { id: true, createdAt: true },
+      });
+
+      await transaction.conversation.update({
+        where: { id: conversationId },
+        data: {
+          lastMessageId: latestMessage?.id ?? null,
+          updatedAt: latestMessage?.createdAt ?? conversation.createdAt,
+        },
+      });
+      await transaction.chatMessage.delete({ where: { id: messageId } });
+    });
+
+    req.app.get('io').to(conversationId).emit('message_deleted', {
+      conversationId,
+      messageId,
+    });
+    res.json({ deleted: true });
+  } catch (error) {
+    console.error('Error al eliminar mensaje:', error);
+    res.status(500).json({ message: 'Error al eliminar mensaje', error: error.message });
+  }
+};
+
 function _formatTimeAgo(date) {
   const now = new Date();
   const diffMs = now - date;
@@ -202,4 +272,5 @@ module.exports = {
   getMessages,
   createOrFindConversation,
   sendMessage,
+  deleteMessage,
 };
