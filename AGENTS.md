@@ -8,19 +8,19 @@ en el día a día del código.
 ## Overview del proyecto
 
 Backend de **Red de Trabajo**, un marketplace de servicios que conecta oferentes y
-clientes. Consumido por una app Flutter (frontend separado). Módulos principales:
-autenticación (Firebase), perfiles, portafolios, servicios/proyectos (con carga de
-fotos), reseñas y chat (pendiente, fase Socket.io).
+clientes. Consumido por una app Flutter (frontend separado). Módulos implementados:
+autenticación Firebase, perfiles, portafolios, servicios, reseñas, favoritos,
+solicitudes, carga de archivos, chat REST/Socket.IO y notificaciones FCM. El índice
+de rutas, controladores y modelos está en `README.md`.
 
 ## Stack
 
 - Node.js + Express
 - Prisma ORM + MySQL
 - Firebase Admin SDK (autenticación — ver "Zonas restringidas" abajo)
-- Carga de imágenes: no hay librería de upload en el backend; las fotos se suben desde
-  el frontend (probablemente a Firebase Storage) y el API recibe solo la URL (campo
-  `imageUrl` / `avatarUrl` como string en el body JSON). [Ajuste respecto al template:
-  el repo no incluye multer, cloudinary, sharp ni SDK de S3.]
+- Carga de fotos y audios: `src/routes/uploads.js` usa Multer para guardar archivos
+  en `uploads/`, y devuelve una URL servida por Express. El frontend persiste la URL
+  asociada al servicio o mensaje.
 
 ## Comandos
 
@@ -29,7 +29,8 @@ npm run dev          # levanta el servidor en modo desarrollo (puerto 3000, node
 npm start            # levanta el servidor en producción (puerto 3000)
 npx prisma studio    # inspeccionar/editar datos directamente
 npx prisma migrate status   # ver estado de migraciones
-npx prisma db push          # sincronizar schema con la base de datos
+npx prisma migrate deploy   # aplicar migraciones versionadas
+npx prisma studio           # inspeccionar datos (sin editar en producción)
 
 Antes de ejecutar `npm run dev`, verifica que no haya otra instancia usando el puerto 3000:
 `netstat -ano | findstr :3000`. Si el PID corresponde a un Node antiguo, compruébalo con

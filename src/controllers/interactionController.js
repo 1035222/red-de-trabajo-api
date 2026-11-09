@@ -17,6 +17,14 @@ async function toggleFavorite(req, res) {
   }
 
   await prisma.favorite.create({ data: { id: uuidv4(), userId, serviceId } });
+  if (service.providerId !== userId) {
+    await notifyUser({
+      userId: service.providerId,
+      title: 'Nuevo me gusta',
+      body: `A alguien le gustó tu servicio "${service.title}"`,
+      data: { type: 'service_favorite', serviceId },
+    });
+  }
   return res.json({ favorite: true });
 }
 

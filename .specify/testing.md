@@ -1,33 +1,32 @@
-Adiciones a .specify/testing.md — red-de-trabajo-api
+# Pruebas — red-de-trabajo-api
 
-IMPORTANTE: esto se AGREGA al testing.md existente (que ya documenta 8 validaciones end-to-end de servicios/auth/Prisma). No se borra ni reemplaza lo ya escrito.
+El índice de rutas/controladores/modelos está en el [README](../README.md). Diferenciar las comprobaciones sintácticas de la API, la persistencia verificada y la entrega real de notificaciones.
 
-Plan de pruebas — Filtros de búsqueda (pendiente de ejecutar cuando se implemente T1/T2)
- GET /api/services?minPrice=X&maxPrice=Y devuelve solo servicios en ese rango.
- GET /api/services?location=Z devuelve solo servicios de esa ubicación.
- Combinación de ambos filtros funciona correctamente.
-Plan de pruebas — Chat en tiempo real (pendiente de ejecutar cuando se implemente T3-T6)
- Conexión Socket.io se establece sin romper las rutas REST existentes (repetir las 8 validaciones ya documentadas y confirmar que siguen en verde).
- Mensaje enviado desde un cliente se persiste en MySQL (verificado en Prisma Studio).
- Mensaje enviado llega en tiempo real a un segundo cliente conectado a la misma conversación.
- Historial de conversación se recupera correctamente al reconectar.
-Plan de pruebas — Notificaciones push (pendiente de ejecutar cuando se implemente T7-T10)
- fcmToken se guarda correctamente en POST /api/users/sync.
- Notificación FCM se dispara al crear un mensaje de chat nuevo.
- Notificación FCM se dispara al recibir una reseña nueva.
- Confirmación de que ningún cambio de esta fase tocó src/middlewares/auth.js, src/config/firebase.js ni serviceAccountKey.json.
+## Verificado en la actualización de notificaciones (2026-11-08)
 
-## Evidencia ejecutada — perfil, publicación y búsqueda (2026-09-11)
+- `node --check src/services/notificationService.js`: pasó.
+- `node --check src/controllers/interactionController.js`: pasó.
+- La validación no envió un push real. Para verificar entrega y sonido hace falta token FCM vigente, credenciales Firebase y dispositivo configurado.
+- La migración `20261109005200_add_fcm_tokens` está versionada. Su aplicación y la consulta `prisma.fcmToken.count()` se confirmaron previamente en la base de desarrollo; ejecutar `npx prisma migrate status` en cada entorno antes de publicar.
 
-- `PUT /api/users/me` con el usuario de desarrollo `probe_upsert_404` respondió `200` con `name=Probe Persistido`, `bio=Perfil guardado desde PUT` y `location=Santiago`.
-- Consulta directa con Prisma para `probe_upsert_404` confirmó esos mismos valores persistidos en `User`.
-- `POST /api/services` con categoría `Limpieza` respondió `201` y creó el servicio `95750bde-3bbb-4814-8ecb-0e7adc2053c9` con precio `$275`, descripción, `categoryId=3`, `categoryName=Limpieza`, `providerId=probe_upsert_404` e `imageUrl`.
-- Consulta directa con Prisma confirmó el registro del servicio.
-- `GET /api/services?category=Limpieza` respondió `200`, devolvió 2 resultados e incluyó el servicio creado, con el proveedor y ubicación `Santiago`.
-- Estas pruebas fueron ejecutadas contra la API local y Prisma con el bypass de desarrollo `x-test-user-id`; no constituyen una interacción UI autenticada real.
+## Matriz de validación pendiente
 
-## Estado posterior a la restauración de auth (2026-09-10)
+| Área | Validación necesaria |
+|---|---|
+| Servicios/filtros | HTTP con datos representativos para `featured`, texto, categoría, rango de precio y ubicación; confirmar resultados con Prisma |
+| Perfil/reseñas | Token Firebase válido; demostrar que las reseñas recibidas filtran por proveedor del servicio |
+| Chat | Dos participantes: persistencia REST, entrega Socket.IO, autorización, archivos y borrado propagado |
+| Favoritos | Agregar notifica al proveedor; quitar y auto-favorito no notifican; metadata incluye `service_favorite` y `serviceId` |
+| FCM | Enviar mensaje/solicitud/reseña/favorito a token válido y probar sonido/tap en móvil |
+| Migraciones | `npx prisma migrate status` y `npx prisma migrate deploy` en cada entorno antes de publicar |
 
-- El bypass temporal `x-test-user-id` fue retirado de `src/middlewares/auth.js` por no ser un cambio seguro.
-- Sin un token Firebase válido, `PUT /api/users/me` y `POST /api/services` responden `401`, confirmando que la protección de auth está activa.
-- El registro de perfil y servicio creado durante la prueba anterior continúa presente en MySQL y fue leído directamente mediante Prisma.
+## Evidencia histórica de API y Prisma (2026-09-11)
+
+- Perfil `PUT /api/users/me`, publicación `POST /api/services` y consulta por categoría devolvieron respuestas esperadas y se verificaron con Prisma.
+- Esas pruebas utilizaron el mecanismo de identidad temporal de desarrollo de aquel momento; el bypass fue retirado. No equivalen a pruebas autenticadas actuales.
+
+## Restricciones de prueba
+
+- Nunca deshabilitar ni reemplazar `src/middlewares/auth.js` para simular una cuenta.
+- No usar `prisma db push` para sustituir migraciones versionadas.
+- Los `node --check` solo confirman sintaxis y no comprueban reglas de negocio, base de datos o entrega FCM.

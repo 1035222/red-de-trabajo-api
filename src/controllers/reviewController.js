@@ -19,7 +19,7 @@ const getReviewsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
     const reviews = await prisma.review.findMany({
-      where: { userId },
+      where: { service: { providerId: userId } },
       orderBy: { createdAt: 'desc' },
     });
     res.json(reviews);

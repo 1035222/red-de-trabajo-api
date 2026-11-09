@@ -29,5 +29,9 @@ Validación de runtime
  [x] T15: Backend iniciado en desarrollo y frontend Flutter servido en localhost; `GET /api/services` y búsqueda por categoría responden correctamente.
  [x] T16: Se retiró el bypass no seguro de `src/middlewares/auth.js`; los endpoints protegidos vuelven a responder `401` sin token Firebase.
  [ ] T17: Login Firebase real desde UI pendiente de una sesión/credencial Firebase disponible para automatización; no se modifica auth para simularla.
+ [x] T18: Se creó y aplicó la migración aditiva de `fcm_tokens`, que faltaba en la base configurada y causaba HTTP 500 al registrar tokens push.
+ [x] T19: `GET /api/reviews/:userId` filtra reseñas por el proveedor de los servicios reseñados, no por el autor de la reseña.
+ [x] T20: Al agregar un favorito se notifica al proveedor con destino `service_favorite`; FCM solicita sonido predeterminado en Android/iOS.
+ [x] T21: Documentar las funcionalidades actuales y ubicar rutas, controladores, servicios y modelos en README/AGENTS/SDD.
 
 Nota: no se modificaron el middleware de verificación de Firebase ni la configuración de Firebase Admin.

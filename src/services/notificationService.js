@@ -27,6 +27,17 @@ async function notifyUser({ userId, title, body, data = {} }) {
     const result = await getFirebaseAdmin().messaging().sendEachForMulticast({
       tokens: registrations.map(({ token }) => token),
       notification: { title, body },
+      android: {
+        notification: {
+          channelId: 'red_de_trabajo_notifications',
+          sound: 'default',
+        },
+      },
+      apns: {
+        payload: {
+          aps: { sound: 'default' },
+        },
+      },
       data: messageData,
     });
 

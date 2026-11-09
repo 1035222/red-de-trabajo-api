@@ -1,10 +1,31 @@
 # Changelog — red-de-trabajo-api
 
+## 2026-11-08: Feat — favoritos notifican al proveedor
+
+- Al agregar un favorito se persiste y envía una notificación `service_favorite` al proveedor del servicio; no se notifica al quitarlo ni al marcar el propio servicio.
+- Los mensajes FCM incluyen sonido predeterminado para Android y APNs; el canal Android se alinea con el canal sonoro configurado en la app.
+
+## 2026-11-08: Docs — actualiza mapa de API
+
+- README, AGENTS y documentos SDD identifican rutas, controladores, modelos y estado vigente de los módulos del backend.
+- Se reemplazaron las descripciones que presentaban chat, filtros, archivos o push como funcionalidades pendientes de implementar.
+
+## 2026-11-08: Fix — métricas de reseñas del proveedor
+
+- `GET /api/reviews/:userId` ahora devuelve las reseñas recibidas en servicios cuyo proveedor es ese usuario; el autor continúa siendo el campo `Review.userId`.
+- Las métricas del perfil del proveedor dejan de incluir las reseñas que ese usuario escribió para otras personas.
+
+## 2026-11-09: Fix — tabla de tokens FCM faltante
+
+- Se agregó y aplicó una migración aditiva para crear `fcm_tokens` con sus índices y relación a `User`.
+- La tabla faltante era la causa del HTTP 500 al activar notificaciones (`Prisma P2021`).
+
 ## 2026-10-31: Fix — sincronización Firebase y notificaciones
 
 - La sincronización del perfil toma el UID y el correo de los claims verificados en el token, no de campos de identidad enviados por el cliente.
 - Se agregaron almacenamiento de tokens FCM por dispositivo y endpoints autenticados para registrarlos/revocarlos.
 - Se persisten y envían notificaciones por mensajes, solicitudes y reseñas; la configuración de base de datos pendiente requiere `npx prisma db push`.
+- Nota de mantenimiento: la carencia de tabla/token que apareció después se resolvió con la migración versionada `20261109005200_add_fcm_tokens`; en entornos se aplica con `npx prisma migrate deploy`.
 
 ## 2026-09-10: Fix — creación de servicios (UUID, categoryId, providerName)
 
